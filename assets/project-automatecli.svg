@@ -1,24 +1,33 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="392" height="240" viewBox="0 0 392 240" role="img" aria-label="AutomateCLI: What I&#x27;m building now. Details soon.">
+<svg xmlns="http://www.w3.org/2000/svg" width="392" height="240" viewBox="0 0 392 240" role="img" aria-label="AutomateCLI: Hackathon winner. What I&#x27;m building now. The repo goes public soon.">
 <style>.rise { opacity: 0; animation: rise .6s cubic-bezier(.22, 1, .36, 1) forwards; } @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }</style>
 
   <defs>
-    <radialGradient id="lt-p2" cx="0%" cy="0%" r="75%"><stop offset="0" stop-color="#9D7CFF" stop-opacity=".16"/><stop offset="1" stop-color="#9D7CFF" stop-opacity="0"/></radialGradient>
-    <linearGradient id="edge-p2" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="lt-p0" cx="0%" cy="0%" r="75%"><stop offset="0" stop-color="#9D7CFF" stop-opacity=".16"/><stop offset="1" stop-color="#9D7CFF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="edge-p0" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
   </defs>
   <rect x=".5" y=".5" width="391" height="239" rx="18" fill="#0F0E17" stroke="#F1EFFA" stroke-opacity=".09"/>
-  <rect x=".5" y=".5" width="391" height="239" rx="18" fill="url(#lt-p2)"/>
-  <path d="M18 .75H374" stroke="url(#edge-p2)" stroke-width="1"/>
+  <rect x=".5" y=".5" width="391" height="239" rx="18" fill="url(#lt-p0)"/>
+  <path d="M18 .75H374" stroke="url(#edge-p0)" stroke-width="1"/>
   
-  <linearGradient id="bm-p2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C4B5FD"/><stop offset=".5" stop-color="#9D7CFF"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
-  <rect x="0.5" y="0.5" width="391" height="239" rx="18" fill="none" stroke="url(#bm-p2)" stroke-width="1.5" stroke-linecap="round"
+  <linearGradient id="bm-p0" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C4B5FD"/><stop offset=".5" stop-color="#9D7CFF"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+  <rect x="0.5" y="0.5" width="391" height="239" rx="18" fill="none" stroke="url(#bm-p0)" stroke-width="1.5" stroke-linecap="round"
         stroke-dasharray="147 1082" opacity=".9">
-    <animate attributeName="stroke-dashoffset" from="0" to="-1229" dur="7s" begin="4.6s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-dashoffset" from="0" to="-1229" dur="7s" begin="0.0s" repeatCount="indefinite"/>
   </rect>
-  <g class="rise" style="animation-delay:0.26s">
-    <text x="28" y="50" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#9D7CFF">In progress</text>
+  <g class="rise" style="animation-delay:0.10s">
+    <text x="28" y="50" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#9D7CFF">CLI</text>
+    
+  <defs><linearGradient id="wb-p0" gradientUnits="userSpaceOnUse" x1="5.400000000000006" x2="65.4">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    <animateTransform attributeName="gradientTransform" type="translate" values="0 0;292 0;292 0" keyTimes="0;.4;1" dur="4s" repeatCount="indefinite"/>
+  </linearGradient></defs>
+  <rect x="65.4" y="31" width="172" height="28" rx="14.0" fill="#F2C46D" fill-opacity=".1" stroke="#F2C46D" stroke-opacity=".5"/>
+  <rect x="65.4" y="31" width="172" height="28" rx="14.0" fill="url(#wb-p0)"/>
+  <g transform="translate(85.4 45.0)" fill="none" stroke="#F2C46D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M-5 -7H5V-2.5A5 5 0 0 1 -5 -2.5Z"/><path d="M-5 -5H-7.5A2.5 2.5 0 0 0 -5 -.5M5 -5H7.5A2.5 2.5 0 0 1 5 -.5"/><path d="M0 2.5V5M-3.5 7H3.5"/></g>
+  <text x="101.4" y="49.5" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#F2C46D">Hackathon winner</text>
     <text x="28" y="88" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" font-weight="600" letter-spacing="-.4" fill="#F1EFFA">AutomateCLI</text>
-    <text x="28" y="124" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A9A5BF">What I&#x27;m building now. Details soon.</text>
-    <text x="28" y="212" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7F7A96">CLI</text>
+    <text x="28" y="124" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A9A5BF">What I&#x27;m building now. The repo goes</text><text x="28" y="148" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A9A5BF">public soon.</text>
+    <text x="28" y="212" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7F7A96">CLI  ·  Automation</text>
   </g>
   <path d="M348 48 L360 36 M351 36 H360 V45" fill="none" stroke="#A9A5BF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

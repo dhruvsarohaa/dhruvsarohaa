@@ -28,11 +28,13 @@ PROFILE = {
     # The header types these commands and shows their output, in order.
     "now": "Building AutomateCLI",
     "status": "open to internships",
+    "wins": "2× hackathon winner",
     "about": [
         ("role", "AI Engineer"),
         ("studies", "KIET Group of Institutions"),
         ("building", "AutomateCLI"),
         ("openTo", "Internships"),
+        ("hackathons", "2× winner"),
         ("stack", ["TypeScript", "Python", "Flutter", "FastAPI"]),
     ],
     "featured": {
@@ -43,8 +45,17 @@ PROFILE = {
                 "family sync, SOS and an AI voice assistant.",
         "tags": ["Flutter", "FastAPI", "Firebase"],
         "figure": ("10", "Indian languages in the voice assistant"),
+        "winner": True,
     },
     "projects": [
+        {
+            "slug": "automatecli",
+            "title": "AutomateCLI",
+            "kind": "CLI",
+            "desc": "What I'm building now. The repo goes public soon.",
+            "tags": ["CLI", "Automation"],
+            "winner": True,
+        },
         {
             "slug": "axar",
             "title": "axar",
@@ -58,13 +69,6 @@ PROFILE = {
             "kind": "iOS app",
             "desc": "Native iOS port of the MedAlert medication reminder app.",
             "tags": ["SwiftUI", "SwiftData"],
-        },
-        {
-            "slug": "automatecli",
-            "title": "AutomateCLI",
-            "kind": "In progress",
-            "desc": "What I'm building now. Details soon.",
-            "tags": ["CLI"],
         },
     ],
     "sections": [("about", "about"), ("selected-work", "work"), ("toolkit", "toolkit"), ("activity", "activity")],
@@ -87,6 +91,7 @@ ACCENT = "#9D7CFF"
 DEEP = "#5B3FD9"
 GLOW = "#C4B5FD"
 POSITIVE = "#4CC38A"
+WIN = "#F2C46D"  # gold, only for hackathon wins
 HAIR = f'stroke="{TEXT}" stroke-opacity=".09"'
 
 LIGHT = {"text": "#14141C", "muted": "#6B6B80", "accent": "#6A47E0"}
@@ -174,9 +179,9 @@ def recent_commits(user, n=5):
 def header(user=None):
     """A terminal floating over a violet horizon. It types three commands, prints
     their output, lists the latest commits in a second pane, then loops."""
-    W, H = 1200, 620
+    W, H = 1200, 652
     T = 16.0  # seconds per loop
-    wx, wy, ww, wh = 110, 64, 980, 448  # terminal window
+    wx, wy, ww, wh = 110, 64, 980, 482  # terminal window
     size, cw = 17, 17 * 0.6
     lx = wx + 44
     rx = wx + ww * .53 + 36
@@ -227,8 +232,13 @@ def header(user=None):
         t + .2,
     )
     output(
-        f'<text x="{lx}" y="{wy + 412}" font-family="{MONO}" font-size="{size}" fill="{ACCENT}">&gt;</text>'
-        f'<rect x="{lx + 2 * cw:.1f}" y="{wy + 397}" width="9" height="20" fill="{ACCENT}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.5;.5;1" dur="1.1s" repeatCount="indefinite"/></rect>',
+        trophy(lx + 5, wy + 395)
+        + f'<text x="{lx + 20}" y="{wy + 401}" font-family="{MONO}" font-size="{size}" fill="{WIN}">{escape(p["wins"])}</text>',
+        t + .45,
+    )
+    output(
+        f'<text x="{lx}" y="{wy + 448}" font-family="{MONO}" font-size="{size}" fill="{ACCENT}">&gt;</text>'
+        f'<rect x="{lx + 2 * cw:.1f}" y="{wy + 433}" width="9" height="20" fill="{ACCENT}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.5;.5;1" dur="1.1s" repeatCount="indefinite"/></rect>',
         t + .6,
     )
 
@@ -296,7 +306,7 @@ def header(user=None):
         "\n".join(keyframes)
         + f"\n.loop {{ animation: loop {T}s infinite; }} @keyframes loop {{ 0%, 95% {{ opacity: 1; }} 98.5%, 100% {{ opacity: 0; }} }}"
     )
-    return svg(W, H, f'{p["name"]}, {p["role"]} at {p["org"]}. {p["now"]}, {p["status"]}.', body, style)
+    return svg(W, H, f'{p["name"]}, {p["role"]} at {p["org"]}. {p["now"]}, {p["wins"]}, {p["status"]}.', body, style)
 
 
 # Small pieces --------------------------------------------------------------
@@ -375,6 +385,29 @@ def code_card():
     return svg(w, h, "About Dhruv: " + ", ".join(f"{k} {v}" for k, v in PROFILE["about"] if not isinstance(v, list)), body, "\n".join(kf))
 
 
+def trophy(x, y, color=WIN):
+    """A 16px line trophy centred on (x, y)."""
+    return (
+        f'<g transform="translate({x} {y})" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M-5 -7H5V-2.5A5 5 0 0 1 -5 -2.5Z"/><path d="M-5 -5H-7.5A2.5 2.5 0 0 0 -5 -.5M5 -5H7.5A2.5 2.5 0 0 1 5 -.5"/>'
+        '<path d="M0 2.5V5M-3.5 7H3.5"/></g>'
+    )
+
+
+def winner_badge(uid, x, y):
+    """Gold pill reading 'Hackathon winner', with a light passing over it."""
+    w, h = 172, 28
+    return f"""
+  <defs><linearGradient id="wb-{uid}" gradientUnits="userSpaceOnUse" x1="{x - 60}" x2="{x}">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    <animateTransform attributeName="gradientTransform" type="translate" values="0 0;{w + 120} 0;{w + 120} 0" keyTimes="0;.4;1" dur="4s" repeatCount="indefinite"/>
+  </linearGradient></defs>
+  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{h / 2}" fill="{WIN}" fill-opacity=".1" stroke="{WIN}" stroke-opacity=".5"/>
+  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{h / 2}" fill="url(#wb-{uid})"/>
+  {trophy(x + 20, y + h / 2)}
+  <text x="{x + 36}" y="{y + 18.5}" font-family="{MONO}" font-size="13" fill="{WIN}">Hackathon winner</text>"""
+
+
 def arrow(x, y, color=MUTED):
     return f'<path d="M{x} {y + 12} L{x + 12} {y} M{x + 3} {y} H{x + 12} V{y + 9}" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
 
@@ -391,6 +424,7 @@ def featured_card():
   {beam("ft", .5, .5, w - 1, h - 1, 18, dur=8)}
   <g class="rise">
     <text x="44" y="62" font-family="{MONO}" font-size="13" fill="{ACCENT}">{escape(p["kind"])}</text>
+    {winner_badge("ft", 44 + text_width(p["kind"], 13, mono=True) + 16, 43) if p.get("winner") else ""}
     <text x="44" y="104" font-family="{SANS}" font-size="34" font-weight="600" letter-spacing="-.8" fill="{TEXT}">{escape(p["title"])}</text>
     {desc_svg}
     <text x="44" y="{h - 40}" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape("  ·  ".join(p["tags"]))}</text>
@@ -399,7 +433,8 @@ def featured_card():
   {sweep_text("fig", 800, 168, escape(figure), f'font-family="{SANS}" font-size="112" font-weight="600" letter-spacing="-4"', dur=5, delay=1)}
   <text x="804" y="208" font-family="{SANS}" font-size="16" fill="{SECOND}">{escape(caption)}</text>
   {arrow(w - 56, 44, SECOND)}"""
-    return svg(w, h, f'{p["title"]}: {p["desc"]}', body, RISE)
+    won = " Hackathon winner." if p.get("winner") else ""
+    return svg(w, h, f'{p["title"]}:{won} {p["desc"]}', body, RISE)
 
 
 def project_card(p, i):
@@ -412,12 +447,14 @@ def project_card(p, i):
   {beam(f"p{i}", .5, .5, w - 1, h - 1, 18, dur=7, delay=i * 2.3)}
   <g class="rise" style="animation-delay:{.1 + i * .08:.2f}s">
     <text x="28" y="50" font-family="{MONO}" font-size="13" fill="{ACCENT}">{escape(p["kind"])}</text>
+    {winner_badge(f"p{i}", 28 + text_width(p["kind"], 13, mono=True) + 14, 31) if p.get("winner") else ""}
     <text x="28" y="88" font-family="{SANS}" font-size="23" font-weight="600" letter-spacing="-.4" fill="{TEXT}">{escape(p["title"])}</text>
     {desc_svg}
     <text x="28" y="{h - 28}" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape("  ·  ".join(p["tags"]))}</text>
   </g>
   {arrow(w - 44, 36, SECOND)}"""
-    return svg(w, h, f'{p["title"]}: {p["desc"]}', body, RISE)
+    won = " Hackathon winner." if p.get("winner") else ""
+    return svg(w, h, f'{p["title"]}:{won} {p["desc"]}', body, RISE)
 
 
 def icon(name, color):

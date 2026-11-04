@@ -1,6 +1,6 @@
 <!-- Images in assets/ are generated. Edit PROFILE in build_assets.py, then run: python build_assets.py -->
 
-<img src="./assets/header.svg" alt="Dhruv Saroha, AI Engineer at KIET Group of Institutions. Building AutomateCLI, open to internships." width="100%">
+<img src="./assets/header.svg" alt="Dhruv Saroha, AI Engineer at KIET Group of Institutions. Building AutomateCLI. 2× hackathon winner, open to internships." width="100%">
 
 <p>
   <a href="https://dhruvsaroha.space"><img src="./assets/button-portfolio.svg" alt="Portfolio" height="52"></a>&nbsp;
@@ -15,7 +15,7 @@
   <img src="./assets/section-about-light.svg" alt="About" width="100%">
 </picture>
 
-<img src="./assets/about.svg" alt="role: AI Engineer, studies: KIET Group of Institutions, building: AutomateCLI, open to: internships" width="100%">
+<img src="./assets/about.svg" alt="role: AI Engineer, studies: KIET Group of Institutions, building: AutomateCLI, open to: internships, hackathons: 2× winner" width="100%">
 
 <br><br>
 
@@ -24,13 +24,13 @@
   <img src="./assets/section-selected-work-light.svg" alt="Selected work" width="100%">
 </picture>
 
-<a href="https://github.com/dhruvsarohaa/MediRoutine"><img src="./assets/project-mediroutine.svg" alt="MediRoutine" width="100%"></a>
+<a href="https://github.com/dhruvsarohaa/MediRoutine"><img src="./assets/project-mediroutine.svg" alt="MediRoutine, hackathon winner" width="100%"></a>
 
 <p>
+  <!-- TODO: point this at the AutomateCLI repo once it's public -->
+  <a href="https://github.com/dhruvsarohaa"><img src="./assets/project-automatecli.svg" alt="AutomateCLI, hackathon winner" width="32.6%"></a>
   <a href="https://github.com/dhruvsarohaa/axar"><img src="./assets/project-axar.svg" alt="axar" width="32.6%"></a>
   <a href="https://github.com/dhruvsarohaa/medalert-swift"><img src="./assets/project-medalert.svg" alt="MedAlert for iOS" width="32.6%"></a>
-  <!-- TODO: point this at the AutomateCLI repo once it's public -->
-  <a href="https://github.com/dhruvsarohaa"><img src="./assets/project-automatecli.svg" alt="AutomateCLI" width="32.6%"></a>
 </p>
 
 <br>
