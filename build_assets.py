@@ -35,7 +35,16 @@ PROFILE = {
         ("building", "AutomateCLI"),
         ("openTo", "Internships"),
         ("hackathons", "2× winner"),
-        ("stack", ["TypeScript", "Python", "Flutter", "FastAPI"]),
+        ("ai", ["OpenAI", "Gemini", "PyTorch", "LoRA"]),
+        ("stack", ["Python", "TypeScript", "FastAPI", "React", "AWS"]),
+    ],
+    # Taken from the dependency files in your own repos. The first group is highlighted.
+    "stack": [
+        ("AI / ML", ["OpenAI API", "Google Gemini", "PyTorch", "Transformers", "PEFT / LoRA", "Accelerate", "Graphiti"]),
+        ("Backend", ["Python", "FastAPI", "Node.js", "Express", "PostgreSQL", "MongoDB", "Docker"]),
+        ("Cloud", ["AWS Cognito", "DynamoDB", "S3", "SQS", "SES", "Firebase", "Supabase"]),
+        ("Frontend", ["TypeScript", "React 19", "TanStack Start", "Vite", "Tailwind", "Radix / shadcn", "Framer Motion", "GSAP"]),
+        ("Mobile", ["Flutter", "Dart", "SwiftUI", "SwiftData"]),
     ],
     "featured": {
         "slug": "mediroutine",
@@ -57,11 +66,11 @@ PROFILE = {
             "winner": True,
         },
         {
-            "slug": "axar",
-            "title": "axar",
-            "kind": "Library",
-            "desc": "A minimal TypeScript agent framework that stays simple and keeps you in control.",
-            "tags": ["TypeScript", "Agents"],
+            "slug": "airday",
+            "title": "Airday",
+            "kind": "Web app",
+            "desc": "India outdoor air planner: turns regional air-pollution evidence into a reviewable plan.",
+            "tags": ["React", "AWS", "DynamoDB"],
         },
         {
             "slug": "medalert",
@@ -699,9 +708,75 @@ def contributions_card(user):
     return svg(w, h, f'{cal["totalContributions"]} contributions in the last year', body, style)
 
 
+def stack_card():
+    """Tools grouped by area. Chips rise in row by row, and a light passes over
+    each row in turn. The first group (AI / ML) carries the accent."""
+    w = 1200
+    cx0, cx1, chip_h, gap = 236, w - 40, 36, 10
+    rows, y = [], 104
+    for gi, (group, tools) in enumerate(PROFILE["stack"]):
+        lines, line, x = [], [], cx0
+        for tool in tools:
+            cw = len(tool) * 15 * .5 + 30
+            if line and x + cw > cx1:
+                lines.append(line)
+                line, x = [], cx0
+            line.append((tool, x, cw))
+            x += cw + gap
+        lines.append(line)
+        rows.append((gi, group, y, lines))
+        y += len(lines) * (chip_h + gap) + 26
+    h = y + 14
+
+    T = 10
+    parts, kf = [], []
+    for gi, group, ry, lines in rows:
+        lead = gi == 0
+        parts.append(
+            f'  <text x="40" y="{ry + 24}" font-family="{MONO}" font-size="15" fill="{ACCENT if lead else SECOND}">{escape(group)}</text>'
+            f'<text x="40" y="{ry + 46}" font-family="{MONO}" font-size="12" fill="{MUTED}">{sum(len(l) for l in lines)} tools</text>'
+        )
+        if gi:
+            parts.append(f'  <path d="M40 {ry - 14}H{w - 40}" {HAIR}/>')
+        for li, line in enumerate(lines):
+            cy = ry + li * (chip_h + gap)
+            for ci, (tool, x, cw) in enumerate(line):
+                k = f"c{gi}{li}{ci}"
+                s = (.2 + gi * .18 + (li * 6 + ci) * .04) / T * 100
+                kf.append(f"@keyframes {k} {{ 0%, {s:.1f}% {{ opacity: 0; transform: translateY(8px); }} {s + 5:.1f}%, 95% {{ opacity: 1; transform: none; }} 99%, 100% {{ opacity: 0; }} }} .{k} {{ animation: {k} {T}s {EASE} infinite; }}")
+                fill, stroke, color = (ACCENT, ACCENT, "#E4DCFF") if lead else (RAISED, TEXT, TEXT)
+                parts.append(
+                    f'<g class="{k}"><rect x="{x:.0f}" y="{cy}" width="{cw:.0f}" height="{chip_h}" rx="9" fill="{fill}" fill-opacity="{.14 if lead else 1}" stroke="{stroke}" stroke-opacity="{.45 if lead else .1}"/>'
+                    f'<text x="{x + cw / 2:.0f}" y="{cy + 23}" text-anchor="middle" font-family="{SANS}" font-size="15" fill="{color}">{escape(tool)}</text></g>'
+                )
+        band_h = len(lines) * (chip_h + gap) - gap
+        parts.append(
+            f'  <rect x="{cx0 - 20}" y="{ry}" width="{w - cx0}" height="{band_h}" fill="url(#rowlight)" mask="url(#chips)" opacity=".9">'
+            f'<animate attributeName="opacity" values="0;0;.9;0;0" keyTimes="0;{gi * .16:.2f};{gi * .16 + .06:.2f};{gi * .16 + .16:.2f};1" dur="6s" repeatCount="indefinite"/></rect>'
+        )
+
+    chip_mask = "".join(
+        f'<rect x="{x:.0f}" y="{ry + li * (chip_h + gap)}" width="{cw:.0f}" height="{chip_h}" rx="9" fill="#fff"/>'
+        for _, _, ry, lines in rows for li, line in enumerate(lines) for _, x, cw in line
+    )
+    body = f"""{card_base("sk", w, h, light=("0%", "0%"))}
+  <defs>
+    <mask id="chips">{chip_mask}</mask>
+    <linearGradient id="rowlight" gradientUnits="userSpaceOnUse" x1="-300" x2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".6" stop-color="{GLOW}" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="0 0;{w + 300} 0" dur="1.2s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  {beam("sk", .5, .5, w - 1, h - 1, 18, dur=11)}
+{card_head(w, "Stack", "from my repos")}
+{chr(10).join(parts)}"""
+    label = "; ".join(f"{g}: {', '.join(t)}" for g, t in PROFILE["stack"])
+    return svg(w, h, label, body, "\n".join(kf))
+
+
 def main():
     OUT.mkdir(exist_ok=True)
-    files = {"about.svg": code_card(), "footer.svg": footer(), "project-" + PROFILE["featured"]["slug"] + ".svg": featured_card()}
+    files = {"about.svg": code_card(), "footer.svg": footer(), "stack.svg": stack_card(), "project-" + PROFILE["featured"]["slug"] + ".svg": featured_card()}
     for theme in ("dark", "light"):
         for slug, title in PROFILE["sections"]:
             files[f"section-{slug}-{theme}.svg"] = section(title, theme)
@@ -723,7 +798,7 @@ def main():
     elif not (OUT / "header.svg").exists():
         files["header.svg"] = header()
 
-    for old in ("footer-dark.svg", "footer-light.svg"):
+    for old in ("footer-dark.svg", "footer-light.svg", "project-axar.svg"):
         (OUT / old).unlink(missing_ok=True)
     for name, content in files.items():
         (OUT / name).write_text(content, encoding="utf-8")

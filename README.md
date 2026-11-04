@@ -15,7 +15,7 @@
   <img src="./assets/section-about-light.svg" alt="About" width="100%">
 </picture>
 
-<img src="./assets/about.svg" alt="role: AI Engineer, studies: KIET Group of Institutions, building: AutomateCLI, open to: internships, hackathons: 2× winner" width="100%">
+<img src="./assets/about.svg" alt="role: AI Engineer, studies: KIET Group of Institutions, building: AutomateCLI, open to: internships, hackathons: 2× winner, ai: OpenAI, Gemini, PyTorch, LoRA, stack: Python, TypeScript, FastAPI, React, AWS" width="100%">
 
 <br><br>
 
@@ -29,7 +29,7 @@
 <p>
   <!-- TODO: point this at the AutomateCLI repo once it's public -->
   <a href="https://github.com/dhruvsarohaa"><img src="./assets/project-automatecli.svg" alt="AutomateCLI, hackathon winner" width="32.6%"></a>
-  <a href="https://github.com/dhruvsarohaa/axar"><img src="./assets/project-axar.svg" alt="axar" width="32.6%"></a>
+  <a href="https://github.com/dhruvsarohaa/AWS"><img src="./assets/project-airday.svg" alt="Airday, India outdoor air planner" width="32.6%"></a>
   <a href="https://github.com/dhruvsarohaa/medalert-swift"><img src="./assets/project-medalert.svg" alt="MedAlert for iOS" width="32.6%"></a>
 </p>
 
@@ -40,9 +40,11 @@
   <img src="./assets/section-toolkit-light.svg" alt="Toolkit" width="100%">
 </picture>
 
+<img src="./assets/stack.svg" alt="Stack. AI / ML: OpenAI API, Google Gemini, PyTorch, Transformers, PEFT / LoRA, Accelerate, Graphiti. Backend: Python, FastAPI, Node.js, Express, PostgreSQL, MongoDB, Docker. Cloud: AWS Cognito, DynamoDB, S3, SQS, SES, Firebase, Supabase. Frontend: TypeScript, React 19, TanStack Start, Vite, Tailwind, Radix / shadcn, Framer Motion, GSAP. Mobile: Flutter, Dart, SwiftUI, SwiftData." width="100%">
+
 <!-- Icon names: https://skillicons.dev -->
-<p>
-  <img src="https://skillicons.dev/icons?i=ts,py,js,dart,swift,react,nextjs,flutter,fastapi,nodejs,firebase,docker,git,github,vscode,linux&theme=dark&perline=16" alt="TypeScript, Python, JavaScript, Dart, Swift, React, Next.js, Flutter, FastAPI, Node.js, Firebase, Docker, Git, GitHub, VS Code, Linux" width="100%">
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=py,pytorch,ts,js,react,vite,tailwind,nodejs,express,fastapi,postgres,mongodb,docker,aws,firebase,supabase,flutter,dart,swift,git&theme=dark&perline=10" alt="Python, PyTorch, TypeScript, JavaScript, React, Vite, Tailwind, Node.js, Express, FastAPI, PostgreSQL, MongoDB, Docker, AWS, Firebase, Supabase, Flutter, Dart, Swift, Git" width="70%">
 </p>
 
 <br>
