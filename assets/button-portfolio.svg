@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="168" height="48" viewBox="0 0 168 48" role="img" aria-label="Portfolio">
+<style>
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }</style>
+  <rect x=".5" y=".5" width="167" height="47" rx="10" fill="#1A1A23" stroke="#EEEEF6" stroke-opacity=".08"/>
+  <path d="M10 1.5H158" stroke="#FFFFFF" stroke-opacity=".08"/>
+  <g transform="translate(28 24)"><circle r="8" fill="none" stroke="#A6A6B8" stroke-width="1.5"/><ellipse rx="3.5" ry="8" fill="none" stroke="#A6A6B8" stroke-width="1.5"/><path d="M-8 0H8" stroke="#A6A6B8" stroke-width="1.5"/></g>
+  <text x="48" y="29.5" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" font-weight="500" fill="#EEEEF6">Portfolio</text>
+</svg>

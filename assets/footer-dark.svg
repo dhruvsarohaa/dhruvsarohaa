@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="72" viewBox="0 0 1200 72" role="img" aria-label="dhruvsaroha.space">
+<style>
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }</style>
+
+  <path d="M0 .5H1200" stroke="#EEEEF6" stroke-opacity=".1"/>
+  <text x="0" y="46" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="16" fill="#9D7CFF">&gt;</text>
+  <text x="24" y="46" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="16" fill="#7E7E92">exit</text>
+  <text x="1200" y="46" text-anchor="end" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="16" fill="#7E7E92">dhruvsaroha.space</text>
+</svg>

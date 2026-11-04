@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="72" viewBox="0 0 1200 72" role="img" aria-label="about">
+<style>.draw { transform-origin: 116px 0; animation: draw .5s cubic-bezier(.22, 1, .36, 1) .1s both; } @keyframes draw { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }</style>
+
+  <text x="0" y="44" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="22" fill="#EEEEF6"><tspan fill="#9D7CFF">~/</tspan>about</text>
+  <rect class="draw" x="116" y="37" width="1084" height="1" fill="#EEEEF6" fill-opacity=".1"/>
+</svg>
