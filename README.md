@@ -3,9 +3,9 @@
 <img src="./assets/header.svg" alt="Dhruv Saroha, AI Engineer at KIET Group of Institutions. Building AutomateCLI, open to internships." width="100%">
 
 <p>
-  <a href="https://dhruvsaroha.space"><img src="./assets/button-portfolio.svg" alt="Portfolio" height="48"></a>&nbsp;
-  <a href="https://www.linkedin.com/in/dhruvsaroha"><img src="./assets/button-linkedin.svg" alt="LinkedIn" height="48"></a>&nbsp;
-  <a href="mailto:dsaroha334@gmail.com"><img src="./assets/button-email.svg" alt="Email" height="48"></a>
+  <a href="https://dhruvsaroha.space"><img src="./assets/button-portfolio.svg" alt="Portfolio" height="52"></a>&nbsp;
+  <a href="https://www.linkedin.com/in/dhruvsaroha"><img src="./assets/button-linkedin.svg" alt="LinkedIn" height="52"></a>&nbsp;
+  <a href="mailto:dsaroha334@gmail.com"><img src="./assets/button-email.svg" alt="Email" height="52"></a>
 </p>
 
 <br>
@@ -62,7 +62,4 @@
 
 <br>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/footer-dark.svg">
-  <img src="./assets/footer-light.svg" alt="dhruvsaroha.space" width="100%">
-</picture>
+<img src="./assets/footer.svg" alt="dhruvsaroha.space" width="100%">

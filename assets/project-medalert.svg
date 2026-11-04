@@ -1,12 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="392" height="236" viewBox="0 0 392 236" role="img" aria-label="MedAlert for iOS: Native iOS port of the MedAlert medication reminder app.">
-<style>.rise { opacity: 0; animation: rise .45s cubic-bezier(.22, 1, .36, 1) forwards; } @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }</style>
-  <rect x=".5" y=".5" width="391" height="235" rx="16" fill="#121219" stroke="#EEEEF6" stroke-opacity=".08"/>
-  <g class="rise" style="animation-delay:0.14s">
-    <text x="28" y="48" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7E7E92">iOS app</text>
-    <text x="28" y="84" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" font-weight="500" letter-spacing="-.3" fill="#EEEEF6">MedAlert for iOS</text>
-    <text x="28" y="120" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A6A6B8">Native iOS port of the MedAlert</text><text x="28" y="144" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A6A6B8">medication reminder app.</text>
-    <text x="28" y="208" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7E7E92">SwiftUI  ·  SwiftData</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="392" height="240" viewBox="0 0 392 240" role="img" aria-label="MedAlert for iOS: Native iOS port of the MedAlert medication reminder app.">
+<style>.rise { opacity: 0; animation: rise .6s cubic-bezier(.22, 1, .36, 1) forwards; } @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }</style>
+
+  <defs>
+    <radialGradient id="lt-p1" cx="0%" cy="0%" r="75%"><stop offset="0" stop-color="#9D7CFF" stop-opacity=".16"/><stop offset="1" stop-color="#9D7CFF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="edge-p1" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect x=".5" y=".5" width="391" height="239" rx="18" fill="#0F0E17" stroke="#F1EFFA" stroke-opacity=".09"/>
+  <rect x=".5" y=".5" width="391" height="239" rx="18" fill="url(#lt-p1)"/>
+  <path d="M18 .75H374" stroke="url(#edge-p1)" stroke-width="1"/>
+  
+  <linearGradient id="bm-p1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C4B5FD"/><stop offset=".5" stop-color="#9D7CFF"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+  <rect x="0.5" y="0.5" width="391" height="239" rx="18" fill="none" stroke="url(#bm-p1)" stroke-width="1.5" stroke-linecap="round"
+        stroke-dasharray="147 1082" opacity=".9">
+    <animate attributeName="stroke-dashoffset" from="0" to="-1229" dur="7s" begin="2.3s" repeatCount="indefinite"/>
+  </rect>
+  <g class="rise" style="animation-delay:0.18s">
+    <text x="28" y="50" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#9D7CFF">iOS app</text>
+    <text x="28" y="88" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="23" font-weight="600" letter-spacing="-.4" fill="#F1EFFA">MedAlert for iOS</text>
+    <text x="28" y="124" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A9A5BF">Native iOS port of the MedAlert</text><text x="28" y="148" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15.5" fill="#A9A5BF">medication reminder app.</text>
+    <text x="28" y="212" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7F7A96">SwiftUI  ·  SwiftData</text>
   </g>
-  <path d="M348 46 L360 34 M351 34 H360 V43" fill="none" stroke="#7E7E92" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M348 48 L360 36 M351 36 H360 V45" fill="none" stroke="#A9A5BF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

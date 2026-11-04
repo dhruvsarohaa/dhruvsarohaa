@@ -2,13 +2,17 @@
 
 Edit PROFILE, then run:  python build_assets.py
 
-The stats, languages and contribution cards read live data from the GitHub API.
-They need a token in GITHUB_TOKEN, or a logged-in `gh` CLI. Without one, those
-three cards are left as they are and everything else is still rebuilt.
+The header's commit pane and the stats, languages and contribution cards read
+live data from the GitHub API. They need a token in GITHUB_TOKEN, or a
+logged-in `gh` CLI. Without one, those cards are left as they are.
+
+Animations loop on purpose and ignore the "reduce motion" system setting, so
+they play for every visitor. They only use opacity and transforms.
 """
 
 import json
 import os
+import random
 import subprocess
 import urllib.request
 from datetime import date
@@ -65,33 +69,33 @@ PROFILE = {
     ],
     "sections": [("about", "about"), ("selected-work", "work"), ("toolkit", "toolkit"), ("activity", "activity")],
     "buttons": [
-        ("portfolio", "Portfolio", "globe"),
-        ("linkedin", "LinkedIn", "linkedin"),
-        ("email", "Email", "mail"),
+        ("portfolio", "Portfolio", "globe", True),
+        ("linkedin", "LinkedIn", "linkedin", False),
+        ("email", "Email", "mail", False),
     ],
     "site": "dhruvsaroha.space",
 }
 
-# One ink ramp, tinted a little toward violet, and violet as the only accent.
-DEEP = "#0A0A10"
-CARD = "#121219"
-RAISED = "#1A1A23"
-TEXT = "#EEEEF6"
-SECOND = "#A6A6B8"
-MUTED = "#7E7E92"
+# Ink surfaces tinted toward violet, violet as the accent and the light source.
+SPACE = "#07060C"
+CARD = "#0F0E17"
+RAISED = "#1A1826"
+TEXT = "#F1EFFA"
+SECOND = "#A9A5BF"
+MUTED = "#7F7A96"
 ACCENT = "#9D7CFF"
+DEEP = "#5B3FD9"
+GLOW = "#C4B5FD"
 POSITIVE = "#4CC38A"
-HAIR = f'stroke="{TEXT}" stroke-opacity=".08"'
+HAIR = f'stroke="{TEXT}" stroke-opacity=".09"'
 
 LIGHT = {"text": "#14141C", "muted": "#6B6B80", "accent": "#6A47E0"}
 
 SANS = "-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
 MONO = "'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace"
-NUM = "font-variant-numeric: tabular-nums;"
 
 EASE = "cubic-bezier(.22, 1, .36, 1)"
-RISE = f".rise {{ opacity: 0; animation: rise .45s {EASE} forwards; }} @keyframes rise {{ from {{ opacity: 0; transform: translateY(8px); }} to {{ opacity: 1; transform: none; }} }}"
-REDUCED = "@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }"
+RISE = f".rise {{ opacity: 0; animation: rise .6s {EASE} forwards; }} @keyframes rise {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: none; }} }}"
 
 OUT = Path(__file__).parent / "assets"
 
@@ -100,21 +104,62 @@ def svg(w, h, label, body, style=""):
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" '
         f'viewBox="0 0 {w} {h}" role="img" aria-label="{escape(label)}">\n'
-        f"<style>{style}\n{REDUCED}</style>\n{body}\n</svg>\n"
+        f"<style>{style}</style>\n{body}\n</svg>\n"
     )
-
-
-def frame(w, h, r=16, fill=CARD):
-    return f'  <rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="{r}" fill="{fill}" {HAIR}/>'
 
 
 def text_width(s, size, mono=False):
     return len(s) * size * (0.6 if mono else 0.54)
 
 
+# Shared pieces -------------------------------------------------------------
+
+def beam(uid, x, y, w, h, r, dur=7, delay=0):
+    """A short streak of light that travels around a rounded rectangle's edge."""
+    perim = 2 * (w + h) - (8 - 2 * 3.1416) * r
+    seg = min(220, perim * .12)
+    return f"""
+  <linearGradient id="bm-{uid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{GLOW}"/><stop offset=".5" stop-color="{ACCENT}"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{r}" fill="none" stroke="url(#bm-{uid})" stroke-width="1.5" stroke-linecap="round"
+        stroke-dasharray="{seg:.0f} {perim - seg:.0f}" opacity=".9">
+    <animate attributeName="stroke-dashoffset" from="0" to="{-perim:.0f}" dur="{dur}s" begin="{delay}s" repeatCount="indefinite"/>
+  </rect>"""
+
+
+def card_base(uid, w, h, r=18, light=("12%", "0%")):
+    """Raised surface with a soft light in one corner, a lit top edge and a hairline."""
+    return f"""
+  <defs>
+    <radialGradient id="lt-{uid}" cx="{light[0]}" cy="{light[1]}" r="75%"><stop offset="0" stop-color="{ACCENT}" stop-opacity=".16"/><stop offset="1" stop-color="{ACCENT}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="edge-{uid}" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="{r}" fill="{CARD}" {HAIR}/>
+  <rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="{r}" fill="url(#lt-{uid})"/>
+  <path d="M{r} .75H{w - r}" stroke="url(#edge-{uid})" stroke-width="1"/>"""
+
+
+def sweep_text(uid, x, y, content, attrs, dur=5, delay=0, base=None):
+    """Silver text with a band of light passing over it."""
+    base = base or f"url(#sv-{uid})"
+    return f"""
+  <defs>
+    <linearGradient id="sv-{uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".7" stop-color="#DCD6F5"/><stop offset="1" stop-color="#A99FD6"/></linearGradient>
+    <linearGradient id="sw-{uid}" gradientUnits="userSpaceOnUse" x1="-260" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="{x - 100} 0;{x + 1100} 0" keyTimes="0;1" dur="{dur}s" begin="{delay}s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <text x="{x}" y="{y}" {attrs} fill="{base}">{content}</text>
+  <text x="{x}" y="{y}" {attrs} fill="url(#sw-{uid})" opacity=".55">{content}</text>"""
+
+
+# Header --------------------------------------------------------------------
+
 def recent_commits(user, n=5):
     commits = []
     for repo in user["recent"]["nodes"]:
+        if repo["name"].lower() == PROFILE["username"].lower():
+            continue  # skip this README repo and its bot refreshes
         ref = repo["defaultBranchRef"]
         for c in (ref["target"]["history"]["nodes"] if ref else []):
             commits.append((c["committedDate"], c["abbreviatedOid"], repo["name"], c["messageHeadline"]))
@@ -127,96 +172,152 @@ def recent_commits(user, n=5):
 
 
 def header(user=None):
-    """A terminal that types three commands and prints their output.
+    """A terminal floating over a violet horizon. It types three commands, prints
+    their output, lists the latest commits in a second pane, then loops."""
+    W, H = 1200, 620
+    T = 16.0  # seconds per loop
+    wx, wy, ww, wh = 110, 64, 980, 448  # terminal window
+    size, cw = 17, 17 * 0.6
+    lx = wx + 44
+    rx = wx + ww * .53 + 36
+    parts, keyframes = [], []
 
-    With GitHub data, a second pane on the right lists the latest public commits.
-    """
-    w, h = 1200, 480
-    p = PROFILE
-    size, cw, x0 = 18, 18 * 0.6, 48
-    parts, styles = [], []
+    def pct(t):
+        return min(99.0, t / T * 100)
 
-    def command(y, cmd, start, x0=x0):
-        dur = len(cmd) * .07
+    def command(y, cmd, start, x0):
+        n = len(cmd)
+        end = start + n * .075
         cmd_x = x0 + 2 * cw
-        cover_w = len(cmd) * cw + 24
-        i = len(styles)
-        styles.append(
-            f".cv{i} {{ animation: type{i} {dur:.2f}s steps({len(cmd)}) {start:.2f}s forwards; }}"
-            f" .ty{i} {{ opacity: 0; animation: type{i} {dur:.2f}s steps({len(cmd)}) {start:.2f}s forwards, on {dur:.2f}s steps(1) {start:.2f}s; }}"
-            f" @keyframes type{i} {{ to {{ transform: translateX({len(cmd) * cw:.1f}px); }} }}"
+        d = n * cw
+        i = len(keyframes)
+        keyframes.append(
+            f"@keyframes cv{i} {{ 0%, {pct(start):.2f}% {{ transform: translateX(0); animation-timing-function: steps({n}, end); }} {pct(end):.2f}%, 100% {{ transform: translateX({d:.1f}px); }} }}"
+            f" @keyframes on{i} {{ 0%, {pct(start):.2f}% {{ opacity: 0; }} {pct(start) + .01:.2f}%, {pct(end):.2f}% {{ opacity: 1; }} {pct(end) + .01:.2f}%, 100% {{ opacity: 0; }} }}"
+            f" .cv{i} {{ animation: cv{i} {T}s infinite; }} .ty{i} {{ animation: cv{i} {T}s infinite, on{i} {T}s infinite; }}"
         )
         parts.append(
             f'  <text x="{x0}" y="{y}" font-family="{MONO}" font-size="{size}" fill="{ACCENT}">&gt;</text>'
             f'<text x="{cmd_x:.1f}" y="{y}" font-family="{MONO}" font-size="{size}" fill="{TEXT}">{escape(cmd)}</text>'
-            f'<rect class="cover cv{i}" x="{cmd_x - 2:.1f}" y="{y - 20}" width="{cover_w:.0f}" height="28" fill="{CARD}"/>'
-            f'<rect class="typing ty{i}" x="{cmd_x:.1f}" y="{y - 16}" width="10" height="21" fill="{ACCENT}"/>'
+            f'<rect class="cv{i}" x="{cmd_x - 2:.1f}" y="{y - 19}" width="{d + 26:.0f}" height="26" fill="{CARD}"/>'
+            f'<rect class="ty{i}" x="{cmd_x:.1f}" y="{y - 15}" width="9" height="20" fill="{ACCENT}"/>'
         )
-        return start + dur
+        return end
 
     def output(markup, start):
-        parts.append(f'  <g class="rise" style="animation-delay:{start:.2f}s">{markup}</g>')
+        i = len(keyframes)
+        s = pct(start)
+        keyframes.append(
+            f"@keyframes o{i} {{ 0%, {s:.2f}% {{ opacity: 0; transform: translateY(10px); }} {min(99.5, s + 4):.2f}%, 100% {{ opacity: 1; transform: none; }} }}"
+            f" .o{i} {{ animation: o{i} {T}s {EASE} infinite; }}"
+        )
+        parts.append(f'  <g class="o{i}">{markup}</g>')
 
-    t = command(104, "whoami", .4)
+    p = PROFILE
+    t = command(wy + 92, "whoami", .8, lx)
+    output(sweep_text("name", lx - 3, wy + 160, escape(p["name"]),
+                      f'font-family="{SANS}" font-size="58" font-weight="600" letter-spacing="-1.8"', dur=4.5, delay=2), t + .2)
+    output(f'<text x="{lx}" y="{wy + 196}" font-family="{SANS}" font-size="18" fill="{SECOND}">{escape(p["role"])}  ·  {escape(p["org"])}</text>', t + .35)
+    t = command(wy + 252, "cat now.txt", t + 1.2, lx)
+    output(f'<text x="{lx}" y="{wy + 284}" font-family="{MONO}" font-size="{size}" fill="{TEXT}">{escape(p["now"])}</text>', t + .2)
+    t = command(wy + 336, "status", t + .8, lx)
     output(
-        f'<text x="{x0 - 3}" y="178" font-family="{SANS}" font-size="64" font-weight="500" letter-spacing="-1.9" fill="{TEXT}">{escape(p["name"])}</text>',
-        t + .15,
+        f'<circle cx="{lx + 5}" cy="{wy + 362}" r="5" fill="{POSITIVE}"><animate attributeName="opacity" values="1;.4;1" dur="2s" repeatCount="indefinite"/></circle>'
+        f'<text x="{lx + 20}" y="{wy + 368}" font-family="{MONO}" font-size="{size}" fill="{TEXT}">{escape(p["status"])}</text>',
+        t + .2,
     )
     output(
-        f'<text x="{x0}" y="216" font-family="{SANS}" font-size="20" fill="{SECOND}">{escape(p["role"])}  ·  {escape(p["org"])}</text>',
-        t + .25,
+        f'<text x="{lx}" y="{wy + 412}" font-family="{MONO}" font-size="{size}" fill="{ACCENT}">&gt;</text>'
+        f'<rect x="{lx + 2 * cw:.1f}" y="{wy + 397}" width="9" height="20" fill="{ACCENT}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.5;.5;1" dur="1.1s" repeatCount="indefinite"/></rect>',
+        t + .6,
     )
-    t = command(276, "cat now.txt", t + .9)
-    output(f'<text x="{x0}" y="310" font-family="{MONO}" font-size="{size}" fill="{TEXT}">{escape(p["now"])}</text>', t + .15)
-    t = command(364, "status", t + .6)
-    output(
-        f'<circle cx="{x0 + 5}" cy="392" r="5" fill="{POSITIVE}"/>'
-        f'<text x="{x0 + 22}" y="398" font-family="{MONO}" font-size="{size}" fill="{TEXT}">{escape(p["status"])}</text>',
-        t + .15,
-    )
-    end = t + .6
+
     commits = recent_commits(user) if user else []
     if commits:
-        px = 696
-        parts.append(f'  <path d="M656 49V{h - 1}" {HAIR}/>')
-        ct = command(104, "git log --oneline", 1.4, x0=px)
+        parts.append(f'  <path d="M{wx + ww * .53:.0f} {wy + 45}V{wy + wh - 1}" {HAIR}/>')
+        ct = command(wy + 92, "git log --oneline", 2.4, rx)
         for i, (_, sha, repo, msg) in enumerate(commits):
-            y = 156 + i * 56
-            msg = msg if len(msg) <= 38 else msg[:37].rstrip() + "…"
+            y = wy + 144 + i * 56
+            msg = msg if len(msg) <= 30 else msg[:29].rstrip() + "…"
             output(
-                f'<text x="{px}" y="{y}" font-family="{MONO}" font-size="16" fill="{MUTED}">{escape(sha)}'
-                f'<tspan dx="12" fill="{TEXT}">{escape(msg)}</tspan></text>'
-                f'<text x="{px + 7 * 9.6 + 12:.0f}" y="{y + 22}" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(repo)}</text>',
-                ct + .15 + i * .06,
+                f'<text x="{rx}" y="{y}" font-family="{MONO}" font-size="15" fill="{ACCENT}" fill-opacity=".8">{escape(sha)}'
+                f'<tspan dx="10" fill="{TEXT}" fill-opacity="1">{escape(msg)}</tspan></text>'
+                f'<text x="{rx + 7 * 9 + 10:.0f}" y="{y + 21}" font-family="{MONO}" font-size="12.5" fill="{MUTED}">{escape(repo)}</text>',
+                ct + .2 + i * .12,
             )
-    output(
-        f'<text x="{x0}" y="444" font-family="{MONO}" font-size="{size}" fill="{ACCENT}">&gt;</text>'
-        f'<rect class="cursor" x="{x0 + 2 * cw:.1f}" y="428" width="10" height="21" fill="{ACCENT}"/>',
-        end,
+
+    rnd = random.Random(7)
+    stars = "".join(
+        f'<circle cx="{rnd.uniform(10, W - 10):.0f}" cy="{rnd.uniform(10, 420):.0f}" r="{rnd.choice([.7, .9, 1.2, 1.5])}" fill="#fff">'
+        f'<animate attributeName="opacity" values=".1;{rnd.uniform(.5, .9):.2f};.1" dur="{rnd.uniform(2.5, 6):.1f}s" begin="{rnd.uniform(0, 4):.1f}s" repeatCount="indefinite"/></circle>'
+        for _ in range(60)
     )
 
-    body = f"""{frame(w, h)}
-  <path d="M1 48H{w - 1}" {HAIR}/>
-  <circle cx="28" cy="24" r="6" fill="{TEXT}" fill-opacity=".14"/><circle cx="48" cy="24" r="6" fill="{TEXT}" fill-opacity=".14"/><circle cx="68" cy="24" r="6" fill="{TEXT}" fill-opacity=".14"/>
-  <text x="{w / 2:.0f}" y="29" text-anchor="middle" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(p["username"])} — zsh</text>
-{chr(10).join(parts)}"""
-    style = (
-        RISE
-        + "\n" + "\n".join(styles)
-        + "\n@keyframes on { from { opacity: 1; } to { opacity: 1; } }"
-        + "\n.cursor { animation: blink 1.1s steps(1) infinite; } @keyframes blink { 50% { opacity: 0; } }"
-    )
-    return svg(w, h, f'{p["name"]}, {p["role"]} at {p["org"]}. {p["now"]}, {p["status"]}.', body, style)
-
-
-def footer(theme):
-    w, h = 1200, 72
-    c = {"dark": {"text": TEXT, "muted": MUTED, "accent": ACCENT}, "light": LIGHT}[theme]
     body = f"""
-  <path d="M0 .5H{w}" stroke="{c["text"]}" stroke-opacity=".1"/>
-  <text x="0" y="46" font-family="{MONO}" font-size="16" fill="{c["accent"]}">&gt;</text>
-  <text x="24" y="46" font-family="{MONO}" font-size="16" fill="{c["muted"]}">exit</text>
-  <text x="{w}" y="46" text-anchor="end" font-family="{MONO}" font-size="16" fill="{c["muted"]}">{escape(PROFILE["site"])}</text>"""
+  <defs>
+    <clipPath id="clip"><rect width="{W}" height="{H}" rx="24"/></clipPath>
+    <radialGradient id="horizon" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="{GLOW}" stop-opacity=".9"/><stop offset=".3" stop-color="{ACCENT}" stop-opacity=".6"/><stop offset=".6" stop-color="{DEEP}" stop-opacity=".25"/><stop offset="1" stop-color="{DEEP}" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" x2="1"><stop offset="0" stop-color="{GLOW}" stop-opacity="0"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="{GLOW}" stop-opacity="0"/></linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{GLOW}" stop-opacity=".22"/><stop offset="1" stop-color="{GLOW}" stop-opacity="0"/></linearGradient>
+    <filter id="haze" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40"/></filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="30" stdDeviation="30" flood-color="#000" flood-opacity=".7"/></filter>
+    <linearGradient id="topedge" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <g clip-path="url(#clip)">
+    <rect width="{W}" height="{H}" fill="{SPACE}"/>
+    <polygon points="540,-40 660,-40 980,{H} 220,{H}" fill="url(#beam)" filter="url(#haze)">
+      <animate attributeName="opacity" values=".6;1;.6" dur="8s" repeatCount="indefinite"/>
+    </polygon>
+    {stars}
+    <ellipse cx="600" cy="{H + 10}" rx="760" ry="240" fill="url(#horizon)">
+      <animate attributeName="ry" values="240;275;240" dur="9s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="600" cy="{H + 210}" rx="760" ry="250" fill="none" stroke="url(#rim)" stroke-width="5" filter="url(#soft)" opacity=".8">
+      <animate attributeName="opacity" values=".55;.95;.55" dur="6s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="600" cy="{H + 210}" rx="760" ry="250" fill="none" stroke="url(#rim)" stroke-width="1.2"/>
+  </g>
+  <rect x=".5" y=".5" width="{W - 1}" height="{H - 1}" rx="24" fill="none" {HAIR}/>
+
+  <g filter="url(#shadow)"><rect x="{wx}" y="{wy}" width="{ww}" height="{wh}" rx="16" fill="{CARD}" fill-opacity=".94"/></g>
+  <rect x="{wx + .5}" y="{wy + .5}" width="{ww - 1}" height="{wh - 1}" rx="16" fill="none" stroke="{TEXT}" stroke-opacity=".12"/>
+  <path d="M{wx + 16} {wy + .75}H{wx + ww - 16}" stroke="url(#topedge)"/>
+  {beam("win", wx + .5, wy + .5, ww - 1, wh - 1, 16, dur=9)}
+  <path d="M{wx + 1} {wy + 44}H{wx + ww - 1}" {HAIR}/>
+  <circle cx="{wx + 24}" cy="{wy + 22}" r="6" fill="#FF5F57" fill-opacity=".85"/><circle cx="{wx + 44}" cy="{wy + 22}" r="6" fill="#FEBC2E" fill-opacity=".85"/><circle cx="{wx + 64}" cy="{wy + 22}" r="6" fill="#28C840" fill-opacity=".85"/>
+  <text x="{wx + ww / 2:.0f}" y="{wy + 27}" text-anchor="middle" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(p["username"])} — zsh</text>
+  <g class="loop">
+{chr(10).join(parts)}
+  </g>"""
+    style = (
+        "\n".join(keyframes)
+        + f"\n.loop {{ animation: loop {T}s infinite; }} @keyframes loop {{ 0%, 95% {{ opacity: 1; }} 98.5%, 100% {{ opacity: 0; }} }}"
+    )
+    return svg(W, H, f'{p["name"]}, {p["role"]} at {p["org"]}. {p["now"]}, {p["status"]}.', body, style)
+
+
+# Small pieces --------------------------------------------------------------
+
+def footer():
+    w, h = 1200, 160
+    body = f"""
+  <defs>
+    <clipPath id="c"><rect width="{w}" height="{h}" rx="20"/></clipPath>
+    <radialGradient id="hz" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="{GLOW}" stop-opacity=".8"/><stop offset=".35" stop-color="{ACCENT}" stop-opacity=".45"/><stop offset="1" stop-color="{DEEP}" stop-opacity="0"/></radialGradient>
+    <linearGradient id="rim" x1="0" x2="1"><stop offset="0" stop-color="{GLOW}" stop-opacity="0"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="{GLOW}" stop-opacity="0"/></linearGradient>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="{w}" height="{h}" fill="{SPACE}"/>
+    <ellipse cx="600" cy="{h + 20}" rx="640" ry="110" fill="url(#hz)"><animate attributeName="ry" values="110;130;110" dur="8s" repeatCount="indefinite"/></ellipse>
+    <ellipse cx="600" cy="{h + 120}" rx="640" ry="150" fill="none" stroke="url(#rim)" stroke-width="1.2" opacity=".8"/>
+  </g>
+  <rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="20" fill="none" {HAIR}/>
+  <text x="48" y="74" font-family="{MONO}" font-size="17" fill="{ACCENT}">&gt;<tspan fill="{SECOND}" dx="10">exit</tspan></text>
+  <rect x="{48 + 7 * 10.2:.0f}" y="60" width="9" height="19" fill="{ACCENT}"><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;.5;.5;1" dur="1.1s" repeatCount="indefinite"/></rect>
+  <text x="{w - 48}" y="74" text-anchor="end" font-family="{MONO}" font-size="16" fill="{SECOND}">{escape(PROFILE["site"])}</text>"""
     return svg(w, h, PROFILE["site"], body)
 
 
@@ -225,11 +326,16 @@ def section(title, theme):
     c = {"dark": {"text": TEXT, "accent": ACCENT}, "light": LIGHT}[theme]
     label = f"~/{title}"
     line_x = text_width(label, 22, mono=True) + 24
+    span = w - line_x
     body = f"""
+  <defs><linearGradient id="dot" x1="0" x2="1"><stop offset="0" stop-color="{c["accent"]}" stop-opacity="0"/><stop offset="1" stop-color="{c["accent"]}"/></linearGradient></defs>
   <text x="0" y="44" font-family="{MONO}" font-size="22" fill="{c["text"]}"><tspan fill="{c["accent"]}">~/</tspan>{escape(title)}</text>
-  <rect class="draw" x="{line_x:.0f}" y="37" width="{w - line_x:.0f}" height="1" fill="{c["text"]}" fill-opacity=".1"/>"""
-    style = f".draw {{ transform-origin: {line_x:.0f}px 0; animation: draw .5s {EASE} .1s both; }} @keyframes draw {{ from {{ transform: scaleX(0); }} }}"
-    return svg(w, h, title, body, style)
+  <rect x="{line_x:.0f}" y="37" width="{span:.0f}" height="1" fill="{c["text"]}" fill-opacity=".12"/>
+  <rect x="{line_x:.0f}" y="36" width="160" height="3" rx="1.5" fill="url(#dot)">
+    <animate attributeName="x" values="{line_x - 160:.0f};{w:.0f}" dur="5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="5s" repeatCount="indefinite"/>
+  </rect>"""
+    return svg(w, h, title, body)
 
 
 def code_card():
@@ -246,91 +352,115 @@ def code_card():
         rows.append([("p", "  "), ("k", key.ljust(10)), ("p", ": ")] + parts)
     rows.append([("p", "};")])
 
-    colors = {"kw": ACCENT, "v": TEXT, "p": MUTED, "k": SECOND, "s": TEXT}
-    top, lh = 96, 32
-    h = top + lh * (len(rows) - 1) + 40
-    lines = []
+    colors = {"kw": ACCENT, "v": TEXT, "p": MUTED, "k": GLOW, "s": "#E9E4FF"}
+    top, lh = 100, 34
+    h = top + lh * (len(rows) - 1) + 44
+    T = 12
+    lines, kf = [], []
     for i, row in enumerate(rows):
         spans = "".join(f'<tspan fill="{colors[k]}">{escape(t)}</tspan>' for k, t in row)
         y = top + i * lh
+        s = (.3 + i * .12) / T * 100
+        kf.append(f"@keyframes l{i} {{ 0%, {s:.1f}% {{ opacity: 0; transform: translateX(-8px); }} {s + 4:.1f}%, 94% {{ opacity: 1; transform: none; }} 98%, 100% {{ opacity: 0; }} }} .l{i} {{ animation: l{i} {T}s {EASE} infinite; }}")
         lines.append(
-            f'  <g class="ln" style="animation-delay:{.15 + i * .05:.2f}s">'
-            f'<text x="56" y="{y}" text-anchor="end" font-family="{MONO}" font-size="14" fill="{MUTED}" fill-opacity=".6">{i + 1}</text>'
+            f'  <g class="l{i}"><text x="56" y="{y}" text-anchor="end" font-family="{MONO}" font-size="14" fill="{MUTED}" fill-opacity=".6">{i + 1}</text>'
             f'<text x="80" y="{y}" font-family="{MONO}" font-size="18" xml:space="preserve">{spans}</text></g>'
         )
-    body = f"""{frame(w, h)}
+    body = f"""{card_base("ab", w, h, light=("100%", "0%"))}
+  {beam("ab", .5, .5, w - 1, h - 1, 18, dur=10)}
   <path d="M1 48H{w - 1}" {HAIR}/>
-  <text x="24" y="29" font-family="{MONO}" font-size="13" fill="{MUTED}">about.ts</text>
+  <circle cx="26" cy="24" r="5.5" fill="{TEXT}" fill-opacity=".15"/><circle cx="44" cy="24" r="5.5" fill="{TEXT}" fill-opacity=".15"/><circle cx="62" cy="24" r="5.5" fill="{TEXT}" fill-opacity=".15"/>
+  <text x="{w / 2:.0f}" y="29" text-anchor="middle" font-family="{MONO}" font-size="13" fill="{MUTED}">about.ts</text>
 {chr(10).join(lines)}"""
-    style = f".ln {{ opacity: 0; animation: ln .4s {EASE} forwards; }} @keyframes ln {{ from {{ opacity: 0; transform: translateX(-6px); }} to {{ opacity: 1; transform: none; }} }}"
-    return svg(w, h, "About Dhruv: " + ", ".join(f"{k} {v}" for k, v in PROFILE["about"] if not isinstance(v, list)), body, style)
+    return svg(w, h, "About Dhruv: " + ", ".join(f"{k} {v}" for k, v in PROFILE["about"] if not isinstance(v, list)), body, "\n".join(kf))
 
 
-def arrow(x, y):
-    return f'<path d="M{x} {y + 12} L{x + 12} {y} M{x + 3} {y} H{x + 12} V{y + 9}" fill="none" stroke="{MUTED}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
+def arrow(x, y, color=MUTED):
+    return f'<path d="M{x} {y + 12} L{x + 12} {y} M{x + 3} {y} H{x + 12} V{y + 9}" fill="none" stroke="{color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>'
 
 
 def featured_card():
     p = PROFILE["featured"]
-    w, h = 1200, 260
-    desc = wrap(p["desc"], 56)[:3]
+    w, h = 1200, 280
+    desc = wrap(p["desc"], 52)[:3]
     desc_svg = "".join(
-        f'<text x="40" y="{132 + j * 28}" font-family="{SANS}" font-size="18" fill="{SECOND}">{escape(line)}</text>' for j, line in enumerate(desc)
+        f'<text x="44" y="{142 + j * 28}" font-family="{SANS}" font-size="18" fill="{SECOND}">{escape(line)}</text>' for j, line in enumerate(desc)
     )
     figure, caption = p["figure"]
-    body = f"""{frame(w, h)}
+    body = f"""{card_base("ft", w, h, light=("85%", "30%"))}
+  {beam("ft", .5, .5, w - 1, h - 1, 18, dur=8)}
   <g class="rise">
-    <text x="40" y="56" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(p["kind"])}</text>
-    <text x="40" y="96" font-family="{SANS}" font-size="32" font-weight="500" letter-spacing="-.6" fill="{TEXT}">{escape(p["title"])}</text>
+    <text x="44" y="62" font-family="{MONO}" font-size="13" fill="{ACCENT}">{escape(p["kind"])}</text>
+    <text x="44" y="104" font-family="{SANS}" font-size="34" font-weight="600" letter-spacing="-.8" fill="{TEXT}">{escape(p["title"])}</text>
     {desc_svg}
-    <text x="40" y="224" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape("  ·  ".join(p["tags"]))}</text>
+    <text x="44" y="{h - 40}" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape("  ·  ".join(p["tags"]))}</text>
   </g>
-  <path d="M760 40V{h - 40}" {HAIR}/>
-  <g class="rise" style="animation-delay:.12s">
-    <text x="800" y="150" font-family="{SANS}" font-size="96" font-weight="500" letter-spacing="-3" fill="{ACCENT}" style="{NUM}">{escape(figure)}</text>
-    <text x="804" y="190" font-family="{SANS}" font-size="16" fill="{SECOND}">{escape(caption)}</text>
-  </g>
-  {arrow(w - 52, 40)}"""
+  <path d="M760 44V{h - 44}" {HAIR}/>
+  {sweep_text("fig", 800, 168, escape(figure), f'font-family="{SANS}" font-size="112" font-weight="600" letter-spacing="-4"', dur=5, delay=1)}
+  <text x="804" y="208" font-family="{SANS}" font-size="16" fill="{SECOND}">{escape(caption)}</text>
+  {arrow(w - 56, 44, SECOND)}"""
     return svg(w, h, f'{p["title"]}: {p["desc"]}', body, RISE)
 
 
 def project_card(p, i):
-    w, h = 392, 236
+    w, h = 392, 240
     desc = wrap(p["desc"], 38)[:3]
     desc_svg = "".join(
-        f'<text x="28" y="{120 + j * 24}" font-family="{SANS}" font-size="15.5" fill="{SECOND}">{escape(line)}</text>' for j, line in enumerate(desc)
+        f'<text x="28" y="{124 + j * 24}" font-family="{SANS}" font-size="15.5" fill="{SECOND}">{escape(line)}</text>' for j, line in enumerate(desc)
     )
-    body = f"""{frame(w, h)}
-  <g class="rise" style="animation-delay:{.08 + i * .06:.2f}s">
-    <text x="28" y="48" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(p["kind"])}</text>
-    <text x="28" y="84" font-family="{SANS}" font-size="22" font-weight="500" letter-spacing="-.3" fill="{TEXT}">{escape(p["title"])}</text>
+    body = f"""{card_base(f"p{i}", w, h, light=("0%", "0%"))}
+  {beam(f"p{i}", .5, .5, w - 1, h - 1, 18, dur=7, delay=i * 2.3)}
+  <g class="rise" style="animation-delay:{.1 + i * .08:.2f}s">
+    <text x="28" y="50" font-family="{MONO}" font-size="13" fill="{ACCENT}">{escape(p["kind"])}</text>
+    <text x="28" y="88" font-family="{SANS}" font-size="23" font-weight="600" letter-spacing="-.4" fill="{TEXT}">{escape(p["title"])}</text>
     {desc_svg}
     <text x="28" y="{h - 28}" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape("  ·  ".join(p["tags"]))}</text>
   </g>
-  {arrow(w - 44, 34)}"""
+  {arrow(w - 44, 36, SECOND)}"""
     return svg(w, h, f'{p["title"]}: {p["desc"]}', body, RISE)
 
 
-ICONS = {
-    "globe": f'<circle r="8" fill="none" stroke="{SECOND}" stroke-width="1.5"/><ellipse rx="3.5" ry="8" fill="none" stroke="{SECOND}" stroke-width="1.5"/><path d="M-8 0H8" stroke="{SECOND}" stroke-width="1.5"/>',
-    "linkedin": f'<rect x="-8" y="-8" width="16" height="16" rx="3" fill="none" stroke="{SECOND}" stroke-width="1.5"/><path d="M-4 -1V4.5M-4 -4.2V-4M0 4.5V-1M0 1.5C0 -.5 4 -1.5 4 1.5V4.5" fill="none" stroke="{SECOND}" stroke-width="1.5" stroke-linecap="round"/>',
-    "mail": f'<rect x="-8.5" y="-6.5" width="17" height="13" rx="2.5" fill="none" stroke="{SECOND}" stroke-width="1.5"/><path d="M-7.5 -5 L0 1 L7.5 -5" fill="none" stroke="{SECOND}" stroke-width="1.5" stroke-linejoin="round"/>',
-}
+def icon(name, color):
+    return {
+        "globe": f'<circle r="8" fill="none" stroke="{color}" stroke-width="1.6"/><ellipse rx="3.5" ry="8" fill="none" stroke="{color}" stroke-width="1.6"/><path d="M-8 0H8" stroke="{color}" stroke-width="1.6"/>',
+        "linkedin": f'<rect x="-8" y="-8" width="16" height="16" rx="3" fill="none" stroke="{color}" stroke-width="1.6"/><path d="M-4 -1V4.5M-4 -4.2V-4M0 4.5V-1M0 1.5C0 -.5 4 -1.5 4 1.5V4.5" fill="none" stroke="{color}" stroke-width="1.6" stroke-linecap="round"/>',
+        "mail": f'<rect x="-8.5" y="-6.5" width="17" height="13" rx="2.5" fill="none" stroke="{color}" stroke-width="1.6"/><path d="M-7.5 -5 L0 1 L7.5 -5" fill="none" stroke="{color}" stroke-width="1.6" stroke-linejoin="round"/>',
+    }[name]
 
 
-def button(label, icon):
-    w, h = 168, 48
-    body = f"""{frame(w, h, r=10, fill=RAISED)}
-  <path d="M10 1.5H{w - 10}" stroke="#FFFFFF" stroke-opacity=".08"/>
-  <g transform="translate(28 24)">{ICONS[icon]}</g>
-  <text x="48" y="29.5" font-family="{SANS}" font-size="15" font-weight="500" fill="{TEXT}">{escape(label)}</text>"""
+def button(label, name, primary):
+    w, h = 176, 52
+    if primary:
+        body = f"""
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B49BFF"/><stop offset="1" stop-color="#7A5AF0"/></linearGradient>
+    <linearGradient id="sh" gradientUnits="userSpaceOnUse" x1="-80" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="-20 0;300 0;300 0" keyTimes="0;.35;1" dur="4s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <rect width="{w}" height="{h}" rx="12" fill="url(#f)"/>
+  <rect width="{w}" height="{h}" rx="12" fill="url(#sh)"/>
+  <path d="M12 1H{w - 12}" stroke="#fff" stroke-opacity=".5"/>
+  <g transform="translate(30 26)">{icon(name, "#120E22")}</g>
+  <text x="52" y="31.5" font-family="{SANS}" font-size="16" font-weight="600" fill="#120E22">{escape(label)}</text>
+  {arrow(w - 34, 20, "#120E22")}"""
+    else:
+        body = f"""
+  <rect x=".5" y=".5" width="{w - 1}" height="{h - 1}" rx="12" fill="{RAISED}" stroke="{TEXT}" stroke-opacity=".12"/>
+  <path d="M12 1.5H{w - 12}" stroke="#fff" stroke-opacity=".14"/>
+  <g transform="translate(30 26)">{icon(name, GLOW)}</g>
+  <text x="52" y="31.5" font-family="{SANS}" font-size="16" font-weight="500" fill="{TEXT}">{escape(label)}</text>
+  {arrow(w - 34, 20)}"""
     return svg(w, h, label, body)
 
+
+# GitHub data ---------------------------------------------------------------
 
 QUERY = """
 query($login: String!) {
   user(login: $login) {
-    recent: repositories(ownerAffiliations: OWNER, privacy: PUBLIC, first: 6, orderBy: {field: PUSHED_AT, direction: DESC}) {
+    recent: repositories(ownerAffiliations: OWNER, privacy: PUBLIC, first: 7, orderBy: {field: PUSHED_AT, direction: DESC}) {
       nodes {
         name
         defaultBranchRef { target { ... on Commit { history(first: 15) { nodes { abbreviatedOid messageHeadline committedDate } } } } }
@@ -398,9 +528,35 @@ def streaks(days):
 
 def card_head(w, title, meta):
     return (
-        f'  <text x="32" y="52" font-family="{SANS}" font-size="17" font-weight="500" fill="{TEXT}">{escape(title)}</text>'
-        f'<text x="{w - 32}" y="52" text-anchor="end" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(meta)}</text>'
+        f'  <text x="32" y="54" font-family="{SANS}" font-size="17" font-weight="600" fill="{TEXT}">{escape(title)}</text>'
+        f'<text x="{w - 32}" y="54" text-anchor="end" font-family="{MONO}" font-size="13" fill="{MUTED}">{escape(meta)}</text>'
     )
+
+
+def odometer(uid, x, y, value, size, color, delay, T=12):
+    """Digits roll up from 0 like an odometer, hold, and roll again each loop."""
+    lh = size * 1.2
+    dw = size * .58
+    out, kf = [f'<clipPath id="od-{uid}"><rect x="{x - 4}" y="{y - size * .95:.1f}" width="{len(value) * dw + 12:.0f}" height="{lh:.1f}"/></clipPath><g clip-path="url(#od-{uid})">'], []
+    for j, ch in enumerate(value):
+        cx = x + j * dw
+        if not ch.isdigit():
+            out.append(f'<text x="{cx:.1f}" y="{y}" font-family="{SANS}" font-size="{size}" font-weight="600" fill="{color}">{escape(ch)}</text>')
+            continue
+        d = int(ch) + 10  # roll through one full turn before landing
+        s = (delay + j * .08) / T * 100
+        e = s + 14
+        name = f"r{uid}{j}"
+        kf.append(
+            f"@keyframes {name} {{ 0%, {s:.1f}% {{ transform: translateY(0); animation-timing-function: cubic-bezier(.16,1,.3,1); }} {e:.1f}%, 100% {{ transform: translateY({-d * lh:.1f}px); }} }}"
+            f" .{name} {{ animation: {name} {T}s infinite; }}"
+        )
+        digits = "".join(
+            f'<text x="{cx:.1f}" y="{y + k * lh:.1f}" font-family="{SANS}" font-size="{size}" font-weight="600" fill="{color}">{k % 10}</text>' for k in range(d + 1)
+        )
+        out.append(f'<g class="{name}">{digits}</g>')
+    out.append("</g>")
+    return "".join(out), kf
 
 
 def stats_card(user):
@@ -409,24 +565,21 @@ def stats_card(user):
     current, longest = streaks(days)
     cc = user["contributionsCollection"]
     items = [
-        ("Contributions", cc["contributionCalendar"]["totalContributions"]),
-        ("Commits", cc["totalCommitContributions"]),
-        ("Active days", sum(1 for d in days if d["contributionCount"])),
+        ("Contributions", f'{cc["contributionCalendar"]["totalContributions"]:,}'),
+        ("Commits", f'{cc["totalCommitContributions"]:,}'),
+        ("Active days", str(sum(1 for d in days if d["contributionCount"]))),
         ("Longest streak", f"{longest}d"),
         ("Current streak", f"{current}d"),
-        ("Public repos", user["repositories"]["totalCount"]),
+        ("Public repos", str(user["repositories"]["totalCount"])),
     ]
-    cells = []
+    cells, kfs = [], []
     for i, (label, value) in enumerate(items):
-        x, y = 32 + (i % 3) * 220, 132 + (i // 3) * 104
-        shown = f"{value:,}" if isinstance(value, int) else value
-        cells.append(
-            f'  <g class="rise" style="animation-delay:{.05 + i * .05:.2f}s">'
-            f'<text x="{x}" y="{y}" font-family="{SANS}" font-size="32" font-weight="500" letter-spacing="-.6" fill="{ACCENT if i == 0 else TEXT}" style="{NUM}">{shown}</text>'
-            f'<text x="{x}" y="{y + 28}" font-family="{SANS}" font-size="14" fill="{SECOND}">{label}</text></g>'
-        )
-    body = f"{frame(w, h)}\n{card_head(w, 'GitHub', 'last 12 months')}\n" + "\n".join(cells)
-    return svg(w, h, "GitHub stats for the last 12 months", body, RISE)
+        x, y = 32 + (i % 3) * 220, 136 + (i // 3) * 104
+        markup, kf = odometer(i, x, y, value, 34, ACCENT if i == 0 else TEXT, .3 + i * .1)
+        kfs += kf
+        cells.append(f'  {markup}<text x="{x}" y="{y + 30}" font-family="{SANS}" font-size="14" fill="{SECOND}">{label}</text>')
+    body = f"{card_base('st', w, h)}\n{beam('st', .5, .5, w - 1, h - 1, 18, dur=9)}\n{card_head(w, 'GitHub', 'last 12 months')}\n" + "\n".join(cells)
+    return svg(w, h, "GitHub stats for the last 12 months: " + ", ".join(f"{l} {v}" for l, v in items), body, "\n".join(kfs))
 
 
 def languages_card(user):
@@ -440,16 +593,21 @@ def languages_card(user):
     lead = top[0][1] if top else 1
     rows = []
     for i, (name, size) in enumerate(top):
-        y = 104 + i * 40
+        y = 106 + i * 40
         bar_w = (w - 64) * size / lead
         rows.append(
             f'  <text x="32" y="{y}" font-family="{SANS}" font-size="15" fill="{TEXT}">{escape(name)}</text>'
-            f'<text x="{w - 32}" y="{y}" text-anchor="end" font-family="{MONO}" font-size="13" fill="{MUTED}" style="{NUM}">{size / total:.0%}</text>'
-            f'<rect x="32" y="{y + 10}" width="{w - 64}" height="4" rx="2" fill="{TEXT}" fill-opacity=".06"/>'
-            f'<rect class="bar" style="animation-delay:{.1 + i * .05:.2f}s" x="32" y="{y + 10}" width="{bar_w:.1f}" height="4" rx="2" fill="{ACCENT if i == 0 else SECOND}" fill-opacity="{1 if i == 0 else .45}"/>'
+            f'<text x="{w - 32}" y="{y}" text-anchor="end" font-family="{MONO}" font-size="13" fill="{MUTED}">{size / total:.0%}</text>'
+            f'<rect x="32" y="{y + 10}" width="{w - 64}" height="5" rx="2.5" fill="{TEXT}" fill-opacity=".07"/>'
+            f'<rect class="bar" style="animation-delay:{.2 + i * .08:.2f}s" x="32" y="{y + 10}" width="{bar_w:.1f}" height="5" rx="2.5" fill="{"url(#lead)" if i == 0 else SECOND}" fill-opacity="{1 if i == 0 else .5}"/>'
         )
-    body = f"{frame(w, h)}\n{card_head(w, 'Languages', 'by code size')}\n" + "\n".join(rows)
-    style = f".bar {{ transform-origin: 32px 0; transform: scaleX(0); animation: bar .7s {EASE} forwards; }} @keyframes bar {{ to {{ transform: scaleX(1); }} }}"
+    body = f"""{card_base("lg", w, h, light=("100%", "0%"))}
+  <defs><linearGradient id="lead" gradientUnits="userSpaceOnUse" x1="0" x2="{w}"><stop offset="0" stop-color="{DEEP}"/><stop offset=".5" stop-color="{GLOW}"/><stop offset="1" stop-color="{ACCENT}"/>
+    <animateTransform attributeName="gradientTransform" type="translate" values="-{w} 0;{w} 0" dur="3s" repeatCount="indefinite"/></linearGradient></defs>
+  {beam("lg", .5, .5, w - 1, h - 1, 18, dur=9, delay=4)}
+{card_head(w, "Languages", "by code size")}
+""" + "\n".join(rows)
+    style = f".bar {{ transform-origin: 32px 0; animation: bar 12s {EASE} infinite; }} @keyframes bar {{ 0% {{ transform: scaleX(0); }} 12%, 100% {{ transform: scaleX(1); }} }}"
     return svg(w, h, "Most used languages: " + ", ".join(n for n, _ in top), body, style)
 
 
@@ -461,20 +619,20 @@ def contributions_card(user):
     gx, gy = (w - (len(weeks) - 1) * step - cell) / 2, 104
     h = int(gy + 7 * step + 56)
     peak = max((d["contributionCount"] for wk in weeks for d in wk["contributionDays"]), default=0) or 1
-    scale = ["#1C1C26", "#2F2752", "#4A3A8E", "#7458D6", "#A68CFF"]
+    scale = ["#1C1A28", "#33295E", "#5040A0", "#7D5FE6", "#C4B2FF"]
 
     def level(n):
         return 0 if n == 0 else min(4, 1 + int(3.999 * n / peak))
 
-    cells, months, last_month = [], [], None
+    cells, mask, months, last_month = [], [], [], None
     for wi, wk in enumerate(weeks):
         x = gx + wi * step
         for d in wk["contributionDays"]:
             day = date.fromisoformat(d["date"])
             y = gy + ((day.weekday() + 1) % 7) * step
-            cells.append(
-                f'<rect class="c" style="animation-delay:{.1 + wi * .014:.3f}s" x="{x:.1f}" y="{y:.1f}" width="{cell}" height="{cell}" rx="4" fill="{scale[level(d["contributionCount"])]}"/>'
-            )
+            cells.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{cell}" height="{cell}" rx="4" fill="{scale[level(d["contributionCount"])]}"/>')
+            if d["contributionCount"]:
+                mask.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{cell}" height="{cell}" rx="4" fill="#fff"/>')
         first = date.fromisoformat(wk["contributionDays"][0]["date"])
         if first.month != last_month and wi < len(weeks) - 2:
             if last_month is not None or first.day <= 7:
@@ -484,43 +642,51 @@ def contributions_card(user):
     ly = h - 28
     legend = "".join(f'<rect x="{w - 168 + i * 20}" y="{ly - 12}" width="14" height="14" rx="3" fill="{c}"/>' for i, c in enumerate(scale))
     body = (
-        f"{frame(w, h)}\n{card_head(w, 'Contributions', '')}"
-        f'<text x="{w - 32}" y="52" text-anchor="end" font-family="{SANS}" font-size="17" fill="{SECOND}"><tspan fill="{TEXT}" font-weight="500" style="{NUM}">{cal["totalContributions"]:,}</tspan> in the last year</text>'
-        + "\n  " + "".join(months)
-        + "\n  " + "\n  ".join(cells)
-        + f'\n  <text x="{w - 180}" y="{ly}" text-anchor="end" font-family="{MONO}" font-size="12" fill="{MUTED}">less</text>{legend}'
-        + f'<text x="{w - 64}" y="{ly}" font-family="{MONO}" font-size="12" fill="{MUTED}">more</text>'
+        card_base("ct", w, h, light=("50%", "0%"))
+        + f"""
+  <defs>
+    <mask id="active">{"".join(mask)}</mask>
+    <linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="-240" x2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".6" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="0 0;{w + 240} 0;{w + 240} 0" keyTimes="0;.6;1" dur="6s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  {beam("ct", .5, .5, w - 1, h - 1, 18, dur=12)}
+{card_head(w, "Contributions", "")}<text x="{w - 32}" y="54" text-anchor="end" font-family="{SANS}" font-size="17" fill="{SECOND}"><tspan fill="{TEXT}" font-weight="600">{cal["totalContributions"]:,}</tspan> in the last year</text>
+  {"".join(months)}
+  <g class="grid">{"".join(cells)}</g>
+  <rect x="0" y="{gy}" width="{w}" height="{7 * step}" fill="url(#wave)" mask="url(#active)"/>
+  <text x="{w - 180}" y="{ly}" text-anchor="end" font-family="{MONO}" font-size="12" fill="{MUTED}">less</text>{legend}<text x="{w - 64}" y="{ly}" font-family="{MONO}" font-size="12" fill="{MUTED}">more</text>"""
     )
-    style = f".c {{ opacity: 0; animation: c .4s {EASE} forwards; }} @keyframes c {{ from {{ opacity: 0; transform: translateY(4px); }} to {{ opacity: 1; transform: none; }} }}"
+    style = f".grid {{ animation: in .8s {EASE} both; }} @keyframes in {{ from {{ opacity: 0; transform: translateY(6px); }} }}"
     return svg(w, h, f'{cal["totalContributions"]} contributions in the last year', body, style)
 
 
 def main():
     OUT.mkdir(exist_ok=True)
-    files = {"about.svg": code_card(), "project-" + PROFILE["featured"]["slug"] + ".svg": featured_card()}
+    files = {"about.svg": code_card(), "footer.svg": footer(), "project-" + PROFILE["featured"]["slug"] + ".svg": featured_card()}
     for theme in ("dark", "light"):
-        files[f"footer-{theme}.svg"] = footer(theme)
         for slug, title in PROFILE["sections"]:
             files[f"section-{slug}-{theme}.svg"] = section(title, theme)
     for i, project in enumerate(PROFILE["projects"]):
         files[f'project-{project["slug"]}.svg'] = project_card(project, i)
-    for slug, label, icon in PROFILE["buttons"]:
-        files[f"button-{slug}.svg"] = button(label, icon)
+    for slug, label, name, primary in PROFILE["buttons"]:
+        files[f"button-{slug}.svg"] = button(label, name, primary)
 
     try:
         user = fetch_github()
     except Exception as err:  # keep the last good cards if the API call fails
-        print(f"GitHub API failed, keeping existing stats cards: {err}")
+        print(f"GitHub API failed, keeping existing data cards: {err}")
         user = None
-    files["header.svg"] = header(user)
     if user:
+        files["header.svg"] = header(user)
         files["stats.svg"] = stats_card(user)
         files["languages.svg"] = languages_card(user)
         files["contributions.svg"] = contributions_card(user)
-    elif not github_token():
-        print("No GitHub token found, keeping existing stats cards.")
+    elif not (OUT / "header.svg").exists():
+        files["header.svg"] = header()
 
-    for old in ("header-dark.svg", "header-light.svg", "footer.svg"):
+    for old in ("footer-dark.svg", "footer-light.svg"):
         (OUT / old).unlink(missing_ok=True)
     for name, content in files.items():
         (OUT / name).write_text(content, encoding="utf-8")

@@ -1,8 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="168" height="48" viewBox="0 0 168 48" role="img" aria-label="Portfolio">
-<style>
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }</style>
-  <rect x=".5" y=".5" width="167" height="47" rx="10" fill="#1A1A23" stroke="#EEEEF6" stroke-opacity=".08"/>
-  <path d="M10 1.5H158" stroke="#FFFFFF" stroke-opacity=".08"/>
-  <g transform="translate(28 24)"><circle r="8" fill="none" stroke="#A6A6B8" stroke-width="1.5"/><ellipse rx="3.5" ry="8" fill="none" stroke="#A6A6B8" stroke-width="1.5"/><path d="M-8 0H8" stroke="#A6A6B8" stroke-width="1.5"/></g>
-  <text x="48" y="29.5" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" font-weight="500" fill="#EEEEF6">Portfolio</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="176" height="52" viewBox="0 0 176 52" role="img" aria-label="Portfolio">
+<style></style>
+
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B49BFF"/><stop offset="1" stop-color="#7A5AF0"/></linearGradient>
+    <linearGradient id="sh" gradientUnits="userSpaceOnUse" x1="-80" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="-20 0;300 0;300 0" keyTimes="0;.35;1" dur="4s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <rect width="176" height="52" rx="12" fill="url(#f)"/>
+  <rect width="176" height="52" rx="12" fill="url(#sh)"/>
+  <path d="M12 1H164" stroke="#fff" stroke-opacity=".5"/>
+  <g transform="translate(30 26)"><circle r="8" fill="none" stroke="#120E22" stroke-width="1.6"/><ellipse rx="3.5" ry="8" fill="none" stroke="#120E22" stroke-width="1.6"/><path d="M-8 0H8" stroke="#120E22" stroke-width="1.6"/></g>
+  <text x="52" y="31.5" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" font-weight="600" fill="#120E22">Portfolio</text>
+  <path d="M142 32 L154 20 M145 20 H154 V29" fill="none" stroke="#120E22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

@@ -1,17 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260" viewBox="0 0 1200 260" role="img" aria-label="MediRoutine: Family medication companion: reminders, prescription scanning, family sync, SOS and an AI voice assistant.">
-<style>.rise { opacity: 0; animation: rise .45s cubic-bezier(.22, 1, .36, 1) forwards; } @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; } .rise, .ln, .c, .bar { opacity: 1 !important; } .bar { transform: none !important; } .cover, .typing { display: none; } }</style>
-  <rect x=".5" y=".5" width="1199" height="259" rx="16" fill="#121219" stroke="#EEEEF6" stroke-opacity=".08"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-label="MediRoutine: Family medication companion: reminders, prescription scanning, family sync, SOS and an AI voice assistant.">
+<style>.rise { opacity: 0; animation: rise .6s cubic-bezier(.22, 1, .36, 1) forwards; } @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }</style>
+
+  <defs>
+    <radialGradient id="lt-ft" cx="85%" cy="30%" r="75%"><stop offset="0" stop-color="#9D7CFF" stop-opacity=".16"/><stop offset="1" stop-color="#9D7CFF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="edge-ft" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect x=".5" y=".5" width="1199" height="279" rx="18" fill="#0F0E17" stroke="#F1EFFA" stroke-opacity=".09"/>
+  <rect x=".5" y=".5" width="1199" height="279" rx="18" fill="url(#lt-ft)"/>
+  <path d="M18 .75H1182" stroke="url(#edge-ft)" stroke-width="1"/>
+  
+  <linearGradient id="bm-ft" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C4B5FD"/><stop offset=".5" stop-color="#9D7CFF"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient>
+  <rect x="0.5" y="0.5" width="1199" height="279" rx="18" fill="none" stroke="url(#bm-ft)" stroke-width="1.5" stroke-linecap="round"
+        stroke-dasharray="220 2705" opacity=".9">
+    <animate attributeName="stroke-dashoffset" from="0" to="-2925" dur="8s" begin="0s" repeatCount="indefinite"/>
+  </rect>
   <g class="rise">
-    <text x="40" y="56" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7E7E92">Android app</text>
-    <text x="40" y="96" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="32" font-weight="500" letter-spacing="-.6" fill="#EEEEF6">MediRoutine</text>
-    <text x="40" y="132" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#A6A6B8">Family medication companion: reminders, prescription</text><text x="40" y="160" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#A6A6B8">scanning, family sync, SOS and an AI voice assistant.</text>
-    <text x="40" y="224" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7E7E92">Flutter  ·  FastAPI  ·  Firebase</text>
+    <text x="44" y="62" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#9D7CFF">Android app</text>
+    <text x="44" y="104" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="34" font-weight="600" letter-spacing="-.8" fill="#F1EFFA">MediRoutine</text>
+    <text x="44" y="142" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#A9A5BF">Family medication companion: reminders, prescription</text><text x="44" y="170" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#A9A5BF">scanning, family sync, SOS and an AI voice</text><text x="44" y="198" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="18" fill="#A9A5BF">assistant.</text>
+    <text x="44" y="240" font-family="'JetBrains Mono', 'SFMono-Regular', 'Cascadia Code', Consolas, 'Liberation Mono', monospace" font-size="13" fill="#7F7A96">Flutter  ·  FastAPI  ·  Firebase</text>
   </g>
-  <path d="M760 40V220" stroke="#EEEEF6" stroke-opacity=".08"/>
-  <g class="rise" style="animation-delay:.12s">
-    <text x="800" y="150" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="96" font-weight="500" letter-spacing="-3" fill="#9D7CFF" style="font-variant-numeric: tabular-nums;">10</text>
-    <text x="804" y="190" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#A6A6B8">Indian languages in the voice assistant</text>
-  </g>
-  <path d="M1148 52 L1160 40 M1151 40 H1160 V49" fill="none" stroke="#7E7E92" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M760 44V236" stroke="#F1EFFA" stroke-opacity=".09"/>
+  
+  <defs>
+    <linearGradient id="sv-fig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".7" stop-color="#DCD6F5"/><stop offset="1" stop-color="#A99FD6"/></linearGradient>
+    <linearGradient id="sw-fig" gradientUnits="userSpaceOnUse" x1="-260" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <animateTransform attributeName="gradientTransform" type="translate" values="700 0;1900 0" keyTimes="0;1" dur="5s" begin="1s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+  <text x="800" y="168" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="112" font-weight="600" letter-spacing="-4" fill="url(#sv-fig)">10</text>
+  <text x="800" y="168" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="112" font-weight="600" letter-spacing="-4" fill="url(#sw-fig)" opacity=".55">10</text>
+  <text x="804" y="208" font-family="-apple-system, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16" fill="#A9A5BF">Indian languages in the voice assistant</text>
+  <path d="M1144 56 L1156 44 M1147 44 H1156 V53" fill="none" stroke="#A9A5BF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
